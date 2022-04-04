@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View,Text, ScrollView } from 'react-native';
+import { View,Text, ScrollView, Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { IconButton, Card, Paragraph } from 'react-native-paper';
 
@@ -53,6 +53,9 @@ function Meet(){
                         marginVertical: 8
                     }}>
                     <Card.Title title={person.username} />
+                    <Card.Cover source={{
+                        uri:'https://picsum.photos/700'
+                    }} />
                     <Card.Content>
                         <Paragraph>{person.bio}</Paragraph>
                     </Card.Content>
