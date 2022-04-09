@@ -1,15 +1,26 @@
 import * as React from 'react';
 import { View } from 'react-native';
 import { ActivityIndicator, Button, Card, TextInput } from 'react-native-paper';
+import { loginUser } from '../sdk';
+import { UserContext } from '../App';
 
-export function Login(){
+export function Login(props:any){
     const [loading,setLoading] = React.useState(false);
     const [loginForm,setLoginForm] = React.useState({
         username:'',
         password:''
     });
     const login = () => {
-        console.log(loginForm);
+        setLoading(true);
+        loginUser(loginForm,(response:any)=>{
+            if(response.token !== undefined){
+                setLoading(false);
+                props.navigation.navigate('Home');
+            }
+        },(error:any)=>{
+            console.error(error);
+            setLoading(false);
+        })
     }
     return (
         <View style={{

@@ -10,7 +10,7 @@ import { Chat, ChatList } from './components/chat';
 import { Login } from './components/login-logout';
 
 const Stack = createNativeStackNavigator();
-const UserContext = React.createContext({});
+export const UserContext = React.createContext({});
 
 function App() {
   const [user,setUser] = React.useState(null);

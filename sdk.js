@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const baseUrl = "http://localhost:8000";
-const apiBaseUrl = "http://localhost:8000/api";
+const baseUrl = "http://192.168.42.187:8000";
+const apiBaseUrl = "http://192.168.42.187:8000/api";
 
 function sendRequest(config,callBack,errorCallBack){
     axios(config).then((response)=>{
@@ -19,6 +19,14 @@ function sendRequest(config,callBack,errorCallBack){
     });
 }
 
+export function loginUser(data,callBack,errorCallBack){
+    sendRequest({
+        url:`${baseUrl}/api-token-auth/`,
+        method:"POST",
+        data: data
+    },callBack,errorCallBack);
+}
+
 export function get_chat_messages(group_id,callBack,errorCallBack){
     sendRequest({
         url:`${apiBaseUrl}/chat/messages/get_group_messages/?group_id=${group_id}`,
@@ -28,16 +36,8 @@ export function get_chat_messages(group_id,callBack,errorCallBack){
 
 export function rootTest(callBack, errorCallBack){
     sendRequest({
-        url:`${apiBaseUrl}/`,
+        url:`${apiBaseUrl}/chat/users/`,
         method:"GET"
-    },callBack,errorCallBack);
-}
-
-export function login(data,callBack,errorCallBack){
-    sendRequest({
-        url:`${baseUrl}/auth/login`,
-        method:"POST",
-        data: data
     },callBack,errorCallBack);
 }
 
