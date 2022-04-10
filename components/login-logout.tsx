@@ -10,11 +10,12 @@ export function Login(props:any){
         username:'',
         password:''
     });
+    const user = React.useContext(UserContext);
     const login = () => {
         setLoading(true);
         loginUser(loginForm,(response:any)=>{
             if(response.token !== undefined){
-                setLoading(false);
+                user.setUser(response);
                 props.navigation.navigate('Home');
             }
         },(error:any)=>{

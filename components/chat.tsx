@@ -2,7 +2,8 @@ import * as React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { GiftedChat, Send } from 'react-native-gifted-chat';
 import { IconButton, Surface, List } from 'react-native-paper';
-import { rootTest } from '../sdk';
+import { UserContext } from '../App';
+import { getChatMessages, rootTest } from '../sdk';
 
 export function ChatList({ navigation }:any){
     return (
@@ -19,6 +20,35 @@ export function ChatList({ navigation }:any){
 function ChatScreen(props:any){
     const [messages,setMessages] = React.useState([]);
     const s = props.socket;
+
+    const user = React.useContext(UserContext);
+
+    React.useEffect(()=>{
+        if(messages.length === 0){
+            get_chat_messages()
+        }
+    },[])
+    const get_chat_messages = () => {
+        getChatMessages(user.userData.token,1,(response:any)=>{
+            let m = response.map((message:any)=>(makeMG(message)));
+            setMessages(previousMessages => GiftedChat.append(previousMessages, m))
+        },(error:any)=>{
+            console.warn(error);
+        })
+    }
+
+    const makeMG = (data:any) =>{
+        const m = {
+            _id: data.id,
+            createdAt: new Date(data.date),
+            text: data.text,
+            user: {
+                _id: data.user
+            }
+        };
+        return m;
+    }
+
     s.onmessage = React.useCallback(function(e:any) {
         const data = JSON.parse(e.data);
         const m = {
@@ -30,7 +60,6 @@ function ChatScreen(props:any){
             }
         };
         setMessages(previousMessages => GiftedChat.append(previousMessages, [m]))
-        console.log(m);
     },[]);
     s.onclose = function(e:any) {
         console.error('Socket closed');
@@ -47,28 +76,17 @@ function ChatScreen(props:any){
             messages={messages}
             onSend={messages => onSend(messages)}
             user={{
-                _id:2
+                _id:user.userData.user.id
             }} />
     );
 }
 
 export function Chat(){
-    const s = new WebSocket('ws://192.168.43.144:8000/ws/chat/stream/?auth=7c673a3f195d0a5d1712fd26c1dd0c4361fb19b6')
-    const get_chat_messages = () => {
-        //
-    }
-    React.useEffect(function(){
-        test();
-    })
-    const test = () => {
-        rootTest(function(response:any){
-            console.log(response);
-        },function(error:any){
-            console.log(error);
-        });
-    }
+    const [messages,setMessages] = React.useState([]);
+    const user = React.useContext(UserContext);
+    const s = user.chatSocket;
     
     return (
-        <ChatScreen socket={s} />
+        <ChatScreen socket={s} messages={messages} />
     );
 }

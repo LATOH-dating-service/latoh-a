@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const baseUrl = "http://192.168.42.187:8000";
-const apiBaseUrl = "http://192.168.42.187:8000/api";
+const baseUrl = "http://192.168.43.144:8000";
+const apiBaseUrl = "http://192.168.43.144:8000/api";
 
 function sendRequest(config,callBack,errorCallBack){
     axios(config).then((response)=>{
@@ -27,10 +27,13 @@ export function loginUser(data,callBack,errorCallBack){
     },callBack,errorCallBack);
 }
 
-export function get_chat_messages(group_id,callBack,errorCallBack){
+export function getChatMessages(token,group_id,callBack,errorCallBack){
     sendRequest({
         url:`${apiBaseUrl}/chat/messages/get_group_messages/?group_id=${group_id}`,
-        method:"GET"
+        method:"GET",
+        headers: {
+            'Authorization':`Token ${token}`
+        }
     },callBack,errorCallBack);
 }
 
