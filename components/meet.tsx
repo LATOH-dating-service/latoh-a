@@ -5,32 +5,35 @@ import { IconButton, Card, Paragraph, FAB, ActivityIndicator, Button, TextInput 
 import Profile from './profile';
 import { UserContext } from '../App';
 import { useLinkProps } from '@react-navigation/native';
+import { getMeets } from '../sdk';
 
 export function Meet(props:any){
-    const people = [
-        {username:'fshangala',bio:'Hello World'},
-        {username:'fshangala',bio:'Hello World'},
-        {username:'fshangala',bio:'Hello World'},
-        {username:'fshangala',bio:'Hello World'},
-        {username:'fshangala',bio:'Hello World'},
-        {username:'fshangala',bio:'Hello World'},
-        {username:'fshangala',bio:'Hello World'},
-        {username:'fshangala',bio:'Hello World'},
-        {username:'fshangala',bio:'Hello World'},
-    ]
+    const [meets,setMeets] = React.useState([]);
+    const [loadMeets,setLoadMeets] = React.useState(true);
+    const user = React.useContext(UserContext);
+    React.useEffect(()=>{
+        if(loadMeets){
+            getMeets(user.userData.token,(response:any)=>{
+                setMeets(response);
+                console.log(response);
+            },(error:any)=>{
+                console.warn(error);
+            })
+            setLoadMeets(false);
+        }
+    })
     return (
         <View>
             <ScrollView>
-                {people.map((person,i)=>(
+                {meets.map((meet,i)=>(
                     <Card key={i} style={{
                             marginVertical: 8
                         }}>
-                        <Card.Title title={person.username} />
                         <Card.Cover source={{
-                            uri:'https://picsum.photos/700'
+                            uri:meet.photo
                         }} />
                         <Card.Content>
-                            <Paragraph>{person.bio}</Paragraph>
+                            <Paragraph>{meet.description}</Paragraph>
                         </Card.Content>
                         <Card.Actions style={{justifyContent:'center'}}>
                             <IconButton icon='heart' />

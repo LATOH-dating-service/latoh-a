@@ -17,25 +17,10 @@ export function ChatList({ navigation }:any){
     );
 }
 
-function ChatScreen(props:any){
+export function ChatPage(props:any){
     const [messages,setMessages] = React.useState([]);
-    const s = props.socket;
-
+    const [loadMessages,setLoadMessages] = React.useState(true);
     const user = React.useContext(UserContext);
-
-    React.useEffect(()=>{
-        if(messages.length === 0){
-            get_chat_messages()
-        }
-    },[])
-    const get_chat_messages = () => {
-        getChatMessages(user.userData.token,1,(response:any)=>{
-            let m = response.map((message:any)=>(makeMG(message)));
-            setMessages(previousMessages => GiftedChat.append(previousMessages, m))
-        },(error:any)=>{
-            console.warn(error);
-        })
-    }
 
     const makeMG = (data:any) =>{
         const m = {
@@ -49,7 +34,31 @@ function ChatScreen(props:any){
         return m;
     }
 
-    s.onmessage = React.useCallback(function(e:any) {
+    const get_chat_messages = () => {
+        if(loadMessages){
+            getChatMessages(user.userData.token,1,(response:any)=>{
+                let m = response.map((message:any)=>(makeMG(message)));
+                setMessages(previousMessages => GiftedChat.append(previousMessages, m))
+            },(error:any)=>{
+                console.warn(error);
+            })
+            setLoadMessages(false);
+        }
+    }
+
+    user.chatSocket.onclose = function(e:any) {
+        console.error('Socket closed');
+    }
+
+    const onSend = React.useCallback((messages=[])=>{
+        const ml = messages.map((message:any)=>({
+            message: message.text,
+            group: 'my_chat'
+        }));
+        user.chatSocket.send(JSON.stringify(ml[0]));
+    },[messages]);
+
+    user.chatSocket.onmessage = React.useCallback(function(e:any) {
         const data = JSON.parse(e.data);
         const m = {
             _id: new Date(),
@@ -61,32 +70,17 @@ function ChatScreen(props:any){
         };
         setMessages(previousMessages => GiftedChat.append(previousMessages, [m]))
     },[]);
-    s.onclose = function(e:any) {
-        console.error('Socket closed');
-    }
-    const onSend = React.useCallback((messages=[])=>{
-        const ml = messages.map((message:any)=>({
-            message: message.text,
-            group: 'my_chat'
-        }));
-        s.send(JSON.stringify(ml[0]));
-    },[]);
-    return (
-        <GiftedChat 
+
+    React.useEffect(()=>{
+        get_chat_messages();
+    })
+
+    return(
+        <GiftedChat
             messages={messages}
             onSend={messages => onSend(messages)}
             user={{
                 _id:user.userData.user.id
-            }} />
-    );
-}
-
-export function Chat(){
-    const [messages,setMessages] = React.useState([]);
-    const user = React.useContext(UserContext);
-    const s = user.chatSocket;
-    
-    return (
-        <ChatScreen socket={s} messages={messages} />
-    );
+            }}  />
+    )
 }

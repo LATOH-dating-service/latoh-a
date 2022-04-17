@@ -6,7 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './components/home';
 import { IconButton } from 'react-native-paper';
-import { Chat, ChatList } from './components/chat';
+import { ChatList, ChatPage } from './components/chat';
 import { Login } from './components/login-logout';
 import { PostMeet } from './components/meet';
 
@@ -30,7 +30,7 @@ function App(props:any) {
             }} name='Home' component={HomeScreen} />
           <Stack.Screen name='PostMeet' component={PostMeet} />
           <Stack.Screen name='ChatList' component={ChatList} />
-          <Stack.Screen name='Chat' component={Chat} />
+          <Stack.Screen name='Chat' component={ChatPage} />
           <Stack.Screen name='Login' component={Login} />
         </Stack.Navigator>
       </NavigationContainer>

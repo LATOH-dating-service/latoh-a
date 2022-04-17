@@ -37,6 +37,16 @@ export function getChatMessages(token,group_id,callBack,errorCallBack){
     },callBack,errorCallBack);
 }
 
+export function getMeets(token,callBack,errorCallBack){
+    sendRequest({
+        url:`${apiBaseUrl}/meet/`,
+        method:"GET",
+        headers: {
+            'Authorization':`Token ${token}`
+        }
+    },callBack,errorCallBack);
+}
+
 export function rootTest(callBack, errorCallBack){
     sendRequest({
         url:`${apiBaseUrl}/chat/users/`,
