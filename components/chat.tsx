@@ -1,13 +1,14 @@
 import * as React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { GiftedChat, Send } from 'react-native-gifted-chat';
-import { IconButton, Surface, List } from 'react-native-paper';
+import { IconButton, Surface, List, Button } from 'react-native-paper';
 import { UserContext } from '../App';
 import { getChatMessages, rootTest } from '../sdk';
 
 export function ChatList({ navigation }:any){
     return (
         <View>
+            <Button>New message</Button>
             <List.Section>
                 <List.Item title='John Smith' onPress={()=>{
                     navigation.navigate('Chat');
@@ -38,6 +39,7 @@ export function ChatPage(props:any){
         if(loadMessages){
             getChatMessages(user.userData.token,1,(response:any)=>{
                 let m = response.map((message:any)=>(makeMG(message)));
+                m.reverse();
                 setMessages(previousMessages => GiftedChat.append(previousMessages, m))
             },(error:any)=>{
                 console.warn(error);

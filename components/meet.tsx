@@ -1,30 +1,37 @@
 import * as React from 'react';
-import { View,Text, ScrollView, Image } from 'react-native';
+import { View,Text, ScrollView, Image, RefreshControl } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { IconButton, Card, Paragraph, FAB, ActivityIndicator, Button, TextInput } from 'react-native-paper';
 import Profile from './profile';
 import { UserContext } from '../App';
 import { useLinkProps } from '@react-navigation/native';
-import { getMeets } from '../sdk';
+import { getMeets, postMeet } from '../sdk';
+import * as ImagePicker from 'expo-image-picker';
+import uuid from 'react-native-uuid';
 
 export function Meet(props:any){
+    const [loading,setLoading] = React.useState(false);
     const [meets,setMeets] = React.useState([]);
     const [loadMeets,setLoadMeets] = React.useState(true);
     const user = React.useContext(UserContext);
     React.useEffect(()=>{
         if(loadMeets){
+            setLoading(true);
             getMeets(user.userData.token,(response:any)=>{
+                response.reverse();
                 setMeets(response);
-                console.log(response);
+                setLoading(false);
             },(error:any)=>{
                 console.warn(error);
+                setLoading(false);
             })
             setLoadMeets(false);
         }
     })
     return (
         <View>
-            <ScrollView>
+            <ScrollView
+                refreshControl={<RefreshControl refreshing={loading} onRefresh={()=>{setLoadMeets(true)}} />}>
                 {meets.map((meet,i)=>(
                     <Card key={i} style={{
                             marginVertical: 8
@@ -36,7 +43,7 @@ export function Meet(props:any){
                             <Paragraph>{meet.description}</Paragraph>
                         </Card.Content>
                         <Card.Actions style={{justifyContent:'center'}}>
-                            <IconButton icon='heart' />
+                            <IconButton color='red' icon='heart' />
                         </Card.Actions>
                     </Card>
                 ))}
@@ -54,35 +61,67 @@ export function Meet(props:any){
 export function PostMeet(props:any){
     const [loading,setLoading] = React.useState(false);
     const [meetForm,setMeetForm] = React.useState({
-        description:''
+        description:'',
+        photo:null
     });
     const user = React.useContext(UserContext);
+
+    const pickImage = async () => {
+      // No permissions request is necessary for launching the image library
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1
+      });
+  
+      if (!result.cancelled) {
+          let fileDetails = result.uri.split(".");
+          let ext = fileDetails.pop()
+          let p = {
+              uri:result.uri,
+              type:`${result.type}/${ext}`,
+              name:`${uuid.v4()}.${ext}`
+          }
+          console.log(p);
+          setMeetForm({description:meetForm.description,photo:p});
+      }
+    };
+
     const postMe = () => {
         setLoading(true);
-        /*loginUser(meetForm,(response:any)=>{
-            if(response.token !== undefined){
-                user.setUser(response);
-                props.navigation.navigate('Home');
+        let me = new FormData();
+        me.append('description',meetForm.description);
+        me.append('photo',meetForm.photo);
+        me.append('user',user.userData.user.id);
+        postMeet(user.userData.token,me,(response:any)=>{
+            console.log(response);
+            setLoading(false);
+            if(response.id !== undefined){
+                props.navigation.navigate('Meet');
             }
         },(error:any)=>{
-            console.error(error);
+            console.warn(error);
             setLoading(false);
-        })*/
+        });
     }
     return(
         <View style={{
             padding:8,
         }}>
             <Card>
+                <Card.Cover source={{uri: Boolean(meetForm.photo) ? meetForm.photo.uri : null}} />
                 <Card.Content>
                     {loading?<ActivityIndicator style={{margin:10}} />:null}
-                    <TextInput onChangeText={(value:string)=>{setMeetForm({
-                        description:value
+                    <Button disabled={loading} icon={'image'} onPress={pickImage}>Pick Image</Button>
+                    <TextInput disabled={loading} onChangeText={(value:string)=>{setMeetForm({
+                        description:value,
+                        photo:meetForm.photo
                     })}} value={meetForm.description} disabled={loading} label={'Description'} style={{marginBottom:10}} />
                 </Card.Content>
                 <Card.Actions>
                     <Button onPress={()=>{postMe();}} loading={loading} disabled={loading} icon={'arrow-up'}>Post Me</Button>
-                    <Button disabled={loading} icon={'arrow-left'}>Cancel</Button>
+                    <Button disabled={loading} icon={'arrow-left'} onPress={()=>{props.navigation.pop()}}>Cancel</Button>
                 </Card.Actions>
             </Card>
         </View>

@@ -46,13 +46,25 @@ const HomeScreen = (props:any) => {
         <Tabs.Navigator
             screenOptions={{
                 headerRight: () => (
-                    <IconButton icon='message' onPress={()=>{props.navigation.navigate('ChatList')}} />
-                )
+                    <IconButton color='blue' icon='message' onPress={()=>{props.navigation.navigate('ChatList')}} />
+                ),
+                tabBarActiveTintColor: 'tomato'
             }} >
-            <Tabs.Screen name='Meet' component={Meet} />
-            <Tabs.Screen name='LikesYou' component={LikesYou} />
             <Tabs.Screen options={{
-                title: user.userData.user.username
+                tabBarIcon: (props:any)=>{
+                    return <IconButton color={props.focused?'tomato':'gray'} icon={'diamond'} />
+                }
+            }} name='Meet' component={Meet} />
+            <Tabs.Screen options={{
+                tabBarIcon: (props:any)=>{
+                    return <IconButton color={props.focused?'tomato':'gray'} icon={'heart'} />
+                }
+            }} name='LikesYou' component={LikesYou} />
+            <Tabs.Screen options={{
+                title: user.userData.user.username,
+                tabBarIcon: (props:any)=>{
+                    return <IconButton color={props.focused?'tomato':'gray'} icon={'account'} />
+                }
             }} name='Profile' component={Profile} />
         </Tabs.Navigator>
     );
