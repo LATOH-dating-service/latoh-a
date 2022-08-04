@@ -1,7 +1,25 @@
 import axios from "axios";
 
-const baseUrl = "http://192.168.43.144:8000";
-const apiBaseUrl = "http://192.168.43.144:8000/api";
+const serverAddress = "192.168.0.128:8000";
+export const wsBaseUrl = `ws://${serverAddress}`;
+export const baseUrl = `http://${serverAddress}`;
+const apiBaseUrl = `http://${serverAddress}/api`;
+
+function fetchRequest(path,config,callBack,errorCallBack){
+    fetch(path,config).then((response)=>response.json()).then((response)=>{
+        callBack(response);
+    }).catch((error)=>{
+        if(error.response === undefined){
+            errorCallBack({
+                success: false,
+                message: "Connection failed!",
+                data: null
+            });
+        } else {
+            errorCallBack(error.response.data);
+        }
+    })
+}
 
 function sendRequest(config,callBack,errorCallBack){
     axios(config).then((response)=>{
@@ -41,6 +59,25 @@ export function getMeets(token,callBack,errorCallBack){
     sendRequest({
         url:`${apiBaseUrl}/meet/`,
         method:"GET",
+        headers: {
+            'Authorization':`Token ${token}`
+        }
+    },callBack,errorCallBack);
+}
+
+export function getFullMeets(token,callBack,errorCallBack){
+    fetchRequest(`${apiBaseUrl}/meet/get_full_meets/`, {
+        method:'GET',
+        headers: {
+            'Authorization':`Token ${token}`
+        }
+    }, callBack,errorCallBack);
+}
+
+export function postMeet(token,data,callBack,errorCallBack){
+    fetchRequest(`${apiBaseUrl}/meet/`,{
+        method:"POST",
+        body:data,
         headers: {
             'Authorization':`Token ${token}`
         }
