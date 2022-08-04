@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { View,Text, ScrollView, Image, RefreshControl } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { IconButton, Card, Paragraph, FAB, ActivityIndicator, Button, TextInput } from 'react-native-paper';
+import { IconButton, Card, Paragraph, FAB, ActivityIndicator, Button, TextInput, Avatar } from 'react-native-paper';
 import Profile from './profile';
-import { UserContext } from '../App';
+import { AppContext } from './utils';
 import { useLinkProps } from '@react-navigation/native';
-import { getMeets, postMeet } from '../sdk';
+import { baseUrl, getFullMeets, postMeet } from '../sdk';
 import * as ImagePicker from 'expo-image-picker';
 import uuid from 'react-native-uuid';
 
@@ -13,21 +13,25 @@ export function Meet(props:any){
     const [loading,setLoading] = React.useState(false);
     const [meets,setMeets] = React.useState([]);
     const [loadMeets,setLoadMeets] = React.useState(true);
-    const user = React.useContext(UserContext);
+    const appContext = React.useContext(AppContext);
+
     React.useEffect(()=>{
         if(loadMeets){
-            setLoading(true);
-            getMeets(user.userData.token,(response:any)=>{
-                response.reverse();
-                setMeets(response);
-                setLoading(false);
-            },(error:any)=>{
-                console.warn(error);
-                setLoading(false);
-            })
-            setLoadMeets(false);
+            if(appContext.userData !== null){
+                setLoading(true);
+                getFullMeets(appContext.userData.token,(response:any)=>{
+                    response.reverse();
+                    setMeets(response);
+                    setLoading(false);
+                },(error:any)=>{
+                    console.warn(error);
+                    setLoading(false);
+                })
+                setLoadMeets(false);
+            }
         }
     })
+    
     return (
         <View>
             <ScrollView
@@ -36,9 +40,10 @@ export function Meet(props:any){
                     <Card key={i} style={{
                             marginVertical: 8
                         }}>
-                        <Card.Cover source={{
-                            uri:meet.photo
-                        }} />
+                        <Card.Title 
+                            title={meet.user.username}
+                            left={(props:any)=><Avatar.Image {...props} source='' />} />
+                        <Card.Cover source={{uri:`${baseUrl}${meet.photo}`}} />
                         <Card.Content>
                             <Paragraph>{meet.description}</Paragraph>
                         </Card.Content>
@@ -49,7 +54,7 @@ export function Meet(props:any){
                 ))}
             </ScrollView>
             <FAB icon='plus' style={{
-                position: 'absolute',
+                position: Boolean(meets.length > 0) ? 'absolute' : 'relative',
                 margin: 16,
                 right: 0,
                 bottom: 0
@@ -64,7 +69,7 @@ export function PostMeet(props:any){
         description:'',
         photo:null
     });
-    const user = React.useContext(UserContext);
+    const user = React.useContext(AppContext);
 
     const pickImage = async () => {
       // No permissions request is necessary for launching the image library

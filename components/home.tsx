@@ -3,7 +3,7 @@ import { View,Text, ScrollView, Image } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { IconButton, Card, Paragraph, FAB } from 'react-native-paper';
 import Profile from './profile';
-import { UserContext } from '../App';
+import { AppContext, UserContext } from './utils';
 import { useLinkProps } from '@react-navigation/native';
 import { Meet } from './meet';
 
@@ -41,12 +41,12 @@ function LikesYou(){
 const Tabs = createBottomTabNavigator();
 
 const HomeScreen = (props:any) => {
-    const user = React.useContext(UserContext);
+    const appContext = React.useContext(AppContext);
     return (
         <Tabs.Navigator
             screenOptions={{
                 headerRight: () => (
-                    <IconButton color='blue' icon='message' onPress={()=>{props.navigation.navigate('ChatList')}} />
+                    <IconButton color='tomato' icon='message' onPress={()=>{props.navigation.navigate('ChatList')}} />
                 ),
                 tabBarActiveTintColor: 'tomato'
             }} >
@@ -61,7 +61,7 @@ const HomeScreen = (props:any) => {
                 }
             }} name='LikesYou' component={LikesYou} />
             <Tabs.Screen options={{
-                title: user.userData.user.username,
+                title: appContext.userData.user.username,
                 tabBarIcon: (props:any)=>{
                     return <IconButton color={props.focused?'tomato':'gray'} icon={'account'} />
                 }

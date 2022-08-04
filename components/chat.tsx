@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { GiftedChat, Send } from 'react-native-gifted-chat';
-import { IconButton, Surface, List, Button } from 'react-native-paper';
-import { UserContext } from '../App';
+import { IconButton, Surface, List, Button, ActivityIndicator } from 'react-native-paper';
+import { AppContext } from './utils';
 import { getChatMessages, rootTest } from '../sdk';
 
 export function ChatList({ navigation }:any){
@@ -21,7 +21,9 @@ export function ChatList({ navigation }:any){
 export function ChatPage(props:any){
     const [messages,setMessages] = React.useState([]);
     const [loadMessages,setLoadMessages] = React.useState(true);
-    const user = React.useContext(UserContext);
+    const [loading,setLoading] = React.useState(false);
+    const [load,setLoad] = React.useState(true);
+    const appContext = React.useContext(AppContext);
 
     const makeMG = (data:any) =>{
         const m = {
@@ -37,7 +39,7 @@ export function ChatPage(props:any){
 
     const get_chat_messages = () => {
         if(loadMessages){
-            getChatMessages(user.userData.token,1,(response:any)=>{
+            getChatMessages(appContext.userData.token,1,(response:any)=>{
                 let m = response.map((message:any)=>(makeMG(message)));
                 m.reverse();
                 setMessages(previousMessages => GiftedChat.append(previousMessages, m))
@@ -48,20 +50,26 @@ export function ChatPage(props:any){
         }
     }
 
-    user.chatSocket.onclose = function(e:any) {
+    appContext.onChatClosed(()=>{
         console.error('Socket closed');
-    }
+    })
 
     const onSend = React.useCallback((messages=[])=>{
         const ml = messages.map((message:any)=>({
             message: message.text,
             group: 'my_chat'
         }));
-        user.chatSocket.send(JSON.stringify(ml[0]));
+        if(appContext.chatSocket.readyState === 1){
+            console.log(ml);
+            appContext.chatSocket.send(JSON.stringify(ml[0]));
+        }else{
+            appContext.reconnectSockets();
+            appContext.chatSocket.send(JSON.stringify(ml[0]));
+            console.warn(appContext.chatSocket.readyState);
+        }
     },[messages]);
 
-    user.chatSocket.onmessage = React.useCallback(function(e:any) {
-        const data = JSON.parse(e.data);
+    appContext.onChatMessage((data:any)=>{
         const m = {
             _id: new Date(),
             createdAt: new Date(),
@@ -71,9 +79,18 @@ export function ChatPage(props:any){
             }
         };
         setMessages(previousMessages => GiftedChat.append(previousMessages, [m]))
-    },[]);
+    })
 
     React.useEffect(()=>{
+        console.log(appContext.chatSocket.readyState)
+        if(load){
+            if(appContext.chatSocket.readyState === 1){
+                setLoading(false);
+            } else {
+                setLoading(true);
+            }
+            setLoad(false);
+        }
         get_chat_messages();
     })
 
@@ -82,7 +99,10 @@ export function ChatPage(props:any){
             messages={messages}
             onSend={messages => onSend(messages)}
             user={{
-                _id:user.userData.user.id
-            }}  />
+                _id:appContext.userData.user.id
+            }}
+            renderLoading={()=>(
+                <ActivityIndicator animating={loading} />
+            )} />
     )
 }

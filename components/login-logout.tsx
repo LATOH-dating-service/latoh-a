@@ -2,7 +2,7 @@ import * as React from 'react';
 import { View } from 'react-native';
 import { ActivityIndicator, Button, Card, TextInput } from 'react-native-paper';
 import { loginUser } from '../sdk';
-import { UserContext } from '../App';
+import { AppContext } from './utils';
 import { getData, storeData } from './utils';
 
 export function Login(props:any){
@@ -12,12 +12,12 @@ export function Login(props:any){
         password:''
     });
     const [checkUser,setCheckUser] = React.useState(true);
-    const user = React.useContext(UserContext);
+    const appContext = React.useContext(AppContext);
     const login = () => {
         setLoading(true);
         loginUser(loginForm,(response:any)=>{
             if(response.token !== undefined){
-                user.setUser(response);
+                appContext.setUser(response);
                 storeData('user',JSON.stringify(response));
                 props.navigation.navigate('Home');
             }
@@ -30,8 +30,10 @@ export function Login(props:any){
         if(checkUser){
             setLoading(true);
             getData('user').then((userData:any)=>{
-                user.setUser(userData);
-                props.navigation.navigate('Home');
+                if(userData){
+                    appContext.setUser(userData);
+                    props.navigation.navigate('Home');
+                }
                 setLoading(false);
             }).catch((error:any)=>{
                 console.warn(error);
